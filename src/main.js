@@ -32,9 +32,11 @@ import store from './store/store'
 import './assets/font/iconfont.css'
 import './assets/xiaotubiao/iconfont.css'
 
+// if (sessionStorage.getItem('userinfo')) {
+//   store.commit('set_userinfo', sessionStorage.getItem('userinfo'))
+// }
 //路由拦截
 router.beforeEach((to, from, next)=>{
-
   next()
 
 })
@@ -50,7 +52,9 @@ axios.interceptors.request.use((config)=>{
     }
   }
 
-  /*config.headers.setItem("token","")*/
+  if (sessionStorage.getItem("token")){
+    config.headers["token"]=store.state.token
+  }
 
   return config;
 })

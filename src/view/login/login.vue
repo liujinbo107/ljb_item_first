@@ -135,7 +135,8 @@
               //存储token到vuex中，
               this.$store.state.token=response.data.token
               this.$store.state.userInfo=response.data.result
-              window.sessionStorage.setItem("userInfo",JSON.stringify(response.data.result))
+              window.sessionStorage.setItem("token",response.data.token)
+              window.sessionStorage.getItem("token")
               //关闭加载窗
               this.$data.percent=100
               //隐藏进度条
