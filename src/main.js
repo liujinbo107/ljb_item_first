@@ -44,17 +44,14 @@ router.beforeEach((to, from, next)=>{
 //请求拦截器
 axios.interceptors.request.use((config)=>{
 
-  if(config.url.includes("getCode")){//如果是获取验证码的路径
+  if(config.url.includes("getCode")){//如果是获取验证码的路径sss
     //没有Cookie的话添加Cookie
     let aucokie=Cookies.get("authcode")
     if(aucokie==null){
       Cookies.set("authcode","",{path:"/",domain:"localhost",age:-1})
     }
   }
-
-  if (sessionStorage.getItem("token")){
     config.headers["token"]=store.state.token
-  }
 
   return config;
 })
