@@ -8,6 +8,7 @@ import datamenu from '@/view/shouye/datamenu'
 import datamain from '@/view/shouye/datamain'
 import system from '@/view/shouye/system'
 import user from '@/view/shouye/user'
+import role from '@/view/shouye/role'
 
 Vue.use(Vuex)
 Vue.use(Router)
@@ -37,6 +38,7 @@ export default new Router({
           children: [
             {path:'/system',component:system,meta:{require:true}},
             {path:'/touser',component:user,meta:{require:true}},
+            {path:'/torole',component:role,meta:{require:true}}
           ]
         }
       ]

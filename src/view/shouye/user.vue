@@ -1,6 +1,5 @@
 <template>
   <div>
-
     <el-form :inline="true" :model="mypage" class="demo-form-inline">
       <el-form-item label="用户名">
         <el-input v-model="mypage.userName" placeholder="用户名"></el-input>
@@ -32,7 +31,7 @@
         <el-button type="primary" @click="onSubmit">查询</el-button>
       </el-form-item>
     </el-form>
-    <el-button type="primary" @click="dakai">添加新用户</el-button>
+    <el-button type="primary" @click="tianjia">添加新用户</el-button>
     <el-table
       ref="multipleTable"
       :data="tableData"
@@ -115,7 +114,7 @@
             size="mini"
             type="danger"
             @click="open(scope.$index, scope.row)">删除</el-button>
-          <el-button type="primary" @click="dakai">绑定角色</el-button>
+          <el-button type="primary" @click="dakai(scope.row)">绑定角色</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -183,6 +182,23 @@
       <el-button type="primary" @click="submitForm('ruleForm')" >确 定</el-button>
       </span>
     </el-dialog>
+
+    <el-dialog title="绑定权限" :visible.sync="addRoleFormVisible">
+      <el-form :model="roleForm" status-icon :rules="rolerules" ref="updateForm">
+        <el-select v-model="roleForm.roleId" filterable placeholder="请选择">
+          <el-option
+            v-for="item in roleList"
+            :key="item.id"
+            :label="item.roleName"
+            :value="item.id">
+          </el-option>
+        </el-select>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="addRoleFormVisible = false">取 消</el-button>
+        <el-button type="primary" @click="doAddUserRole">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -243,7 +259,18 @@
               { required: true, message: '请填写电话', trigger: 'change' }
             ]
           },
-          tupian:"",
+          rolerules:{
+            roleId:[
+              {required: true, message: '请选择性别', trigger: 'change'}
+            ]
+          },
+          repassword:'',
+          roleList:[],
+          addRoleFormVisible:false,
+          roleForm:{
+            roleId:'',
+            userId:''
+          }
         }
       },
       mounted() {
@@ -252,7 +279,6 @@
       methods:{
         getlist(mypage){
           this.$axios.post(this.url+"toUserList",mypage).then((res)=>{
-
             this.tableData = res.data.result.list;
             this.total = res.data.result.total;
           })
@@ -266,25 +292,46 @@
             }
           });
         },
+        tianjia(){
+          this.dialogVisible=true;
+        },
         toadd(){
-
           if(this.entityMod.id!=null){
             this.$axios.post(this.url+"toupdateuser",this.entityMod).then((res)=>{
-              if(res.data.code=200){
-                alert("修改成功");
+              if(res.data.code=='200'){
+                this.$message({
+                  type: 'success',
+                  message: '修改成功!'
+                });
                 this.dialogVisible=false;
                 this.entityMod = {};
+                this.getlist(this.mypage);
+              }else if(res.data.code=='203'){
+                alert("登录名已存在")
+              }else{
+                this.$message({
+                  type: 'success',
+                  message: '修改失败!'
+                });
               }
+            }).catch((error)=>{
+              this.$message({
+                type: 'info',
+                message: '你没有权限操作！'
+              });
             })
-          }else{
+          } else{
             this.$axios.post(this.url+"toadduser",this.entityMod).then((res)=>{
-              if(res.data.code=200){
+              if(res.data.code=='200'){
                 this.$message({
                   type: 'success',
                   message: '添加成功!'
                 });
                 this.dialogVisible=false;
                 this.entityMod = {};
+                this.getlist(this.mypage);
+              }else if(res.data.code=='203'){
+                alert("登录名已存在")
               }else{
                 this.$message({
                   type: 'success',
@@ -299,8 +346,38 @@
             })
             }
         },
-        dakai(){
-          this.dialogVisible=true;
+        dakai(row){
+          this.$axios.post(this.url+"tofindallrole").then((res)=>{
+            this.roleList = res.data.result;
+          })
+          if(row.roleInfo!=null){
+            this.roleForm.roleId = row.roleInfo.id;
+          }
+          this.roleForm.userId = row.id;
+          this.addRoleFormVisible=true;
+        },
+        doAddUserRole(){
+          this.$axios.post(this.url+"tobdrole",this.roleForm).then((res)=>{
+            if(res.data.code=='200'){
+              this.$message({
+                type: 'success',
+                message: '绑定成功!'
+              });
+              this.addRoleFormVisible=false;
+              this.roleForm={}
+              this.getlist(this.mypage);
+            }else{
+              this.$message({
+                type: 'success',
+                message: '绑定失败!'
+              });
+            }
+          }).catch((error)=>{
+            this.$message({
+              type: 'info',
+              message: '你没有权限操作！'
+            });
+          })
         },
         handleAvatarSuccess(res, file) {
           this.imageUrl = URL.createObjectURL(file.raw);
@@ -338,6 +415,7 @@
         handleEdit(index, row) {
           this.dialogVisible=true;
           this.entityMod = row;
+          this.entityMod.password = "";
           this.imageUrl = 'http://localhost:8888/'+row.touxiang;
         },
         guanbi(){
