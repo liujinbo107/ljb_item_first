@@ -19,6 +19,7 @@
             </el-dropdown-menu>
           </el-dropdown>
           <span ref="userinfo_username">{{username}}</span>
+          <el-avatar :size="30" :src="touxiang"></el-avatar>
           <input ref="userinfo_userid" type="hidden" v-model="userid">
           &nbsp;&nbsp;&nbsp;
           <el-dropdown trigger="click" >
@@ -84,6 +85,7 @@
         dialog1Visible: false,
         userid:this.$store.state.userInfo.id,
         username:this.$store.state.userInfo.userName,
+        touxiang:'http://localhost:8888/'+this.$store.state.userInfo.touxiang,
         currInfo:{
           userName:'',
           loginName:'',
@@ -155,6 +157,7 @@
 
           this.$confirm('确认登出？').then(_ => {
             this.$axios.post(this.domain.serverpath+"loginout").then((response)=>{
+              this.$store.dispatch('logout');
               let sts=response.data.success;
               if(sts=="ok"){
                 this.$router.push({path:'/'});
@@ -186,7 +189,6 @@
     mounted(){
       //初始化webSocket
       //this.webSocketInit();
-
       if(this.$route.query.username!=null&& this.$route.query.username!='undefind'){
 
       }
@@ -208,7 +210,7 @@
   }
 
   .el-aside {
-    color: #333;
+    color: white;
     height: 100%;
   }
 

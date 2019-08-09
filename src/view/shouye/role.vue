@@ -324,7 +324,7 @@
             cancelButtonText: '取消',
             type: 'warning',
           }).then(() => {
-            this.$axios.post(this.url+"todeluser",{id:row.id}).then((res)=>{
+            this.$axios.post(this.url+"todelrole",{id:row.id}).then((res)=>{
               if(res.data.code){
                 this.$message({
                   type: 'success',
