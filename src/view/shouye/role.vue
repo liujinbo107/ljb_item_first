@@ -89,14 +89,14 @@
       :visible.sync="addRoleFormVisible"
       width="30%">
 
-      <el-form :model="entityMod" :rules="rules" ref="ruleForm" label-width="80px">
+      <el-form :model="menuForm" :rules="roless" ref="menuForm" label-width="80px">
 
         <el-form-item label="角色名称" prop="roleName">
-          <el-input v-model="entityMod.roleName"></el-input>
+          <el-input v-model="menuForm.roleName"></el-input>
         </el-form-item>
 
         <el-form-item label="角色描述" prop="miaoShu">
-          <el-input v-model="entityMod.miaoShu"></el-input>
+          <el-input v-model="menuForm.miaoShu"></el-input>
         </el-form-item>
 
       </el-form>
@@ -113,7 +113,7 @@
 
       <span slot="footer" class="dialog-footer">
       <el-button @click="quxiao()">取 消</el-button>
-      <el-button type="primary" @click="tijiao('ruleForm')" >保 存</el-button>
+      <el-button type="primary" @click="tijiao('menuForm')" >保 存</el-button>
       </span>
     </el-dialog>
   </div>
@@ -153,10 +153,19 @@
               label:'menuName',
               code:'leval'
             },
-            updateform:{
-              id:"",
-              menuName:"",
-              code:""
+            menuForm:{
+              id:'',
+              roleName:'',
+              miaoShu:'',
+              mid:''
+            },
+            roless:{
+              roleName: [
+                { required: true, message: '请填写角色名称', trigger: 'change' }
+              ],
+              miaoShu: [
+                {  required: true, message: '请填写角色描述', trigger: 'change' }
+              ]
             },
             nodes:[]
           }
@@ -172,6 +181,7 @@
           this.$axios.post(this.url + "toRoleList", mypage).then((res) => {
             this.tableData = res.data.result.list;
             this.total = res.data.result.total;
+            console.log(this.tableData);
           })
         },
         resetForm(formName) {
@@ -215,25 +225,35 @@
           this.dialogVisible = true;
         },
         dakai(row) {
-          this.entityMod = row;
+          this.menuForm.roleName = row.roleName;
+          this.menuForm.miaoShu = row.miaoShu;
+          this.menuForm.id = row.id;
           this.nodes = row.listMenuInfo.filter(item => item.leval == '4');
           this.addRoleFormVisible = true;
           setTimeout(() => {
             this.$refs.tree.setCheckedNodes(this.nodes), 0
           })
         },
-        tijiao(){
-          this.entityMod.listMenuInfo={};
-          this.entityMod.mid=this.$refs.tree.getHalfCheckedKeys()+','+this.$refs.tree.getCheckedKeys();
-          alert(this.entityMod)
-          this.$axios.post(this.url+'tobdmenu',this.entityMod).then((res)=>{
+        tijiao(menuForm){
+          this.$refs[menuForm].validate((valid) => {
+            if (valid) {
+              this.bangding();
+            } else {
+              return false;
+            }
+          });
+        },
+        bangding(){
+          this.menuForm.mid=this.$refs.tree.getHalfCheckedKeys()+','+this.$refs.tree.getCheckedKeys();
+          //console.log(this.menuForm)
+          this.$axios.post(this.url+'tobdmenu',this.menuForm).then((res)=>{
             if(res.data.code=='200'){
               this.$message({
                 type: 'success',
                 message: '编辑成功!'
               });
               this.addRoleFormVisible = false;
-              this.entityMod={}
+              this.getlist(this.mypage);
             }else{
               this.$message({
                 type: 'success',
