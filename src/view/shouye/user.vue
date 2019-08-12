@@ -189,7 +189,7 @@
         </el-dialog>
 
         <el-dialog title="绑定权限" :visible.sync="addRoleFormVisible">
-          <el-form :model="roleForm" status-icon :rules="rolerules" ref="updateForm">
+          <el-form :model="roleForm" status-icon>
             <el-select v-model="roleForm.roleId" filterable placeholder="请选择">
               <el-option
                 v-for="item in roleList"
@@ -210,15 +210,15 @@
 
 
         <el-upload
-          style="display: inline"
-          :show-file-list="false"
-          :on-success="onSuccess"
-          :on-error="onError"
-          :before-upload="beforeUpload"
-          :auto_upload="false"
-          action="/system/basic/jl/import">
-          <el-button slot="trigger" type="primary">选取文件</el-button>
-          <el-button type="success" :disabled="!enabledUploadBtn" :icon="uploadBtnIcon">{{btnText}}</el-button>
+          class="upload-demo"
+          :headers="this.header"
+          ref="upload"
+          action="http://localhost:10000/api/manger/toaddusers"
+          :on-preview="handlePreview"
+          :auto-upload="false">
+          <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
+          <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">上传到服务器</el-button>
+          <div slot="tip" class="el-upload__tip">只能上传excel文件</div>
         </el-upload>
 
       </el-tab-pane>
@@ -240,11 +240,30 @@
             callback();
           }
         };
+        var validPhone=(rule, value,callback)=>{
+          const phoneReg = /^1[3|4|5|7|8][0-9]{9}$/
+          if (!value) {
+            return callback(new Error('电话号码不能为空'))
+          }
+          setTimeout(() => {
+            // Number.isInteger是es6验证数字是否为整数的方法,但是我实际用的时候输入的数字总是识别成字符串
+            // 所以我就在前面加了一个+实现隐式转换
+            if (!Number.isInteger(+value)) {
+              callback(new Error('请输入数字值'))
+            } else {
+              if (phoneReg.test(value)) {
+                callback()
+              } else {
+                callback(new Error('电话号码格式不正确'))
+              }
+            }
+          }, 100)
+        }
         return{
-          uploadBtnIcon:'el-icon-upload2',
-          enabledUploadBtn:true,
           dialogVisible:false,
-          btnText:'点击选择文件',
+          header:{
+            token:this.$store.state.token
+          },
           jl:{
             name:'',
             titlelevel:'中级'
@@ -308,12 +327,7 @@
               { validator: validatePass2, trigger: 'change' }
             ],
             tel:[
-              { required: true, message: '请填写电话', trigger: 'change' }
-            ]
-          },
-          rolerules:{
-            roleId:[
-              {required: true, message: '请选择性别', trigger: 'change'}
+              { validator:validPhone, trigger: 'change' }
             ]
           },
           repassword:'',
@@ -329,55 +343,39 @@
         this.getlist(this.mypage);
       },
       methods:{
-        onSuccess(response,file,fileList){
-          this.enabledUploadBtn=true;
-          this.uploadBtnIcon="el-icon-upload2";
-          this.btnText='数据导入';
-          alert("数据导入成功！");
-          this.initJls();
+        submitUpload() {
+          this.$refs.upload.submit();
+          this.$message({
+            type: 'success',
+            message: '导出成功!'
+          });
         },
-
-        onError(err,file,fileList){
-          this.enabledUploadBtn=true;
-          this.uploadBtnIcon="el-icon-upload2";
-          this.btnText='数据导入';
-          alert("数据导入失败！请检查是否有重复数据,和网络连接状况！");
+        handleRemove(file, fileList) {
+          console.log(file, fileList);
         },
-        beforeUpload(file){
-          this.enabledUploadBtn=false;
-          this.uploadBtnIcon="el-icon-loading";
-          this.btnText='正在导入';
-        },
-        initJls() {
-          this.getRequest("/system/basic/jl/").then(resp => {
-            if (resp) {
-              this.jls = resp;
-            }
-          })
-        },
-        importData(){
-          //1.查找到存放文件的元素
-          let myfile=this.$refs.myfile;
-          //2.钙元素内部有一个file数组，里面存放了所有选择的file。
-          // 由于上传文件时，文件可以多选，因此这里拿到的files对象是一个数组
-          let files=myfile.files;
-          //3.从files对象中，获取自己要上传的文件（即数组中的第一项）
-          let file=files[0];
-          //4.构造一个FormData，用来存放上传的数据，注意FormData不可以使用链式配置
-          var formData = new FormData();
-          formData.append("file",file);
-          formData.append("username","Kyokkk");
-          //5.构造好FormData后，就可以直接上传数据了，FormData就是要上传的数据
-          //6.文件上传注意两点，①请求方法为POST，②设置Content-Type为multipart/form-data
-          this.uploadFileRequest("/system/basic/jl/import",formData).then(resp=>{
-            if (resp) {
-              alert(resp);
-            }
-          })
+        handlePreview(file) {
+          console.log(file);
         },
         exportData(){
-          /*表示在当前页面打开新地址*/
-          window.open("/system/basic/jl/export","_parent");
+          this.$axios.post(this.url+"toexport").then((res)=>{
+            if(res.data.code='200'){
+              this.$message({
+                type: 'success',
+                message: '导出成功!'
+              });
+            }else{
+              this.$message({
+                type: 'success',
+                message: '导出失败!'
+              });
+            }
+          }).catch((error)=>{
+            this.$message({
+              type: 'info',
+              message: '你没有权限操作！'
+            });
+          })
+
         },
         getlist(mypage){
           this.$axios.post(this.url+"toUserList",mypage).then((res)=>{
@@ -540,12 +538,12 @@
                   message: '删除成功!'
                 });
                 this.getlist(this.mypage);
-              }else{
-                this.$message({
-                  type: 'info',
-                  message: '你没有权限操作！'
-                });
               }
+            }).catch(()=>{
+              this.$message({
+                type: 'warning',
+                message: '你没有权限操作！'
+              });
             })
           }).catch(() => {
             this.$message({

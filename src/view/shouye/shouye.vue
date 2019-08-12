@@ -156,10 +156,15 @@
         if(command=="b"){//退出操作
 
           this.$confirm('确认登出？').then(_ => {
-            this.$axios.post(this.domain.serverpath+"loginout").then((response)=>{
-              this.$store.dispatch('logout');
-              let sts=response.data.success;
-              if(sts=="ok"){
+            this.$axios.post(this.domain.ssoserverpath+"loginout",{id:this.userid}).then((response)=>{
+              this.$store.state.token=""
+              this.$store.state.userInfo={}
+              let sts=response.data.code;
+              if(sts=="200"){
+                this.$message({
+                  type: 'success',
+                  message: '退出成功!'
+                });
                 this.$router.push({path:'/'});
               }
             })

@@ -319,7 +319,11 @@
           this.entityMod = {};
         },
         open(index,row) {
-          this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+          if(row.userNames!=null){
+            alert("绑定该角色的用户有："+row.userNames+"，无法删除！");
+            return;
+          }
+          this.$confirm('此操作将永久删除该角色, 是否继续?', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             type: 'warning',
@@ -337,6 +341,11 @@
                   message: '你没有权限操作！'
                 });
               }
+            }).catch(()=>{
+              this.$message({
+                type: 'info',
+                message: '你没有权限操作！'
+              });
             })
           }).catch(() => {
             this.$message({
