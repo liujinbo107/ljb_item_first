@@ -159,6 +159,7 @@
             this.$axios.post(this.domain.ssoserverpath+"loginout",{id:this.userid}).then((response)=>{
               this.$store.state.token=""
               this.$store.state.userInfo={}
+              window.localStorage.clear();
               let sts=response.data.code;
               if(sts=="200"){
                 this.$message({
@@ -193,11 +194,8 @@
     },
     mounted(){
       //初始化webSocket
-      //this.webSocketInit();
-      if(this.$route.query.username!=null&& this.$route.query.username!='undefind'){
-
-      }
-
+      //this.webSocketInit()
+      //console.log(window.localStorage.getItem("store"));
     },
     destroyed(){
       //关闭socket

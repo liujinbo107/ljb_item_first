@@ -37,7 +37,19 @@ import './assets/xiaotubiao/iconfont.css'
 // }
 //路由拦截
 router.beforeEach((to, from, next)=>{
-  next()
+  //判断是否登录 to.meta.require是true说明需要进行登录的验证
+  if(to.meta.require){
+    //获取本地存储中的jwt token
+    let token=window.localStorage.getItem("store");
+    if(token!=null){
+      next();
+    }else{
+      next({path:"/"});//跳转到登录页面
+    }
+  }else{
+    //否则说明不需要进行登录的验证
+    next();
+  }
 
 })
 

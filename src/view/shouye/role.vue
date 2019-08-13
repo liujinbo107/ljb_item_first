@@ -42,7 +42,7 @@
       </el-table-column>
 
       <el-table-column label="操作">
-        <template slot-scope="scope">
+        <template slot-scope="scope" v-if="scope.row.level>userInfo.roleInfo.level">
           <el-button
             size="mini"
             type="danger"
@@ -77,6 +77,18 @@
           <el-input v-model="entityMod.miaoShu"></el-input>
         </el-form-item>
 
+        <el-form-item label="角色等级" prop="level">
+          <el-select v-model="entityMod.level" filterable placeholder="请选择">
+            <el-option
+              v-for="item in [1,2,3,4,5,6]"
+              :key="item"
+              :label="item"
+              :value="item"
+              v-if="userInfo.roleInfo.level < item">
+            </el-option>
+          </el-select>
+        </el-form-item>
+
       </el-form>
       <span slot="footer" class="dialog-footer">
       <el-button @click="resetForm('ruleForm')">重 置</el-button>
@@ -99,6 +111,17 @@
           <el-input v-model="menuForm.miaoShu"></el-input>
         </el-form-item>
 
+        <el-form-item label="角色等级" prop="level">
+          <el-select v-model="menuForm.level" filterable placeholder="请选择">
+            <el-option
+              v-for="item in [1,2,3,4,5,6]"
+              :key="item"
+              :label="item"
+              :value="item"
+              v-if="userInfo.roleInfo.level < item">
+            </el-option>
+          </el-select>
+        </el-form-item>
       </el-form>
       权限列表信息
       <el-tree
@@ -124,6 +147,7 @@
         name: "role",
       data(){
           return{
+            userInfo:this.$store.state.userInfo,
             tableData:[],
             entityMod:{},
             mypage:{
@@ -172,7 +196,7 @@
       },
       mounted() {
         this.getlist(this.mypage)
-        this.$axios.post(this.url + "tofindallmenu").then((res) => {
+        this.$axios.post(this.url + "tofindallmenuByRoleId",{id:this.userInfo.roleInfo.id}).then((res) => {
           this.menuData = res.data.result;
         })
       },

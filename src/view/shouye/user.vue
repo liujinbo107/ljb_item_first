@@ -106,12 +106,20 @@
             prop=""
           >
             <template slot-scope="scope">
-              <span v-if="scope.row.roleInfo!=null"> {{scope.row.roleInfo.roleName}}</span>
+              <el-popover trigger="hover" placement="top">
+                <p>角色名: {{ scope.row.roleInfo.roleName}}</p>
+                <p>角色描述: {{ scope.row.roleInfo.miaoShu }}</p>
+                <el-button size="mini" @click="delbdrole(scope.row.id)" v-if="scope.row.roleInfo.id!='1908131117520000'&&scope.row.roleInfo.level>userInfo.roleInfo.level">解除绑定</el-button>
+                <div slot="reference" class="name-wrapper">
+                  <el-tag size="medium">{{scope.row.roleInfo.roleName}}</el-tag>
+                </div>
+              </el-popover>
             </template>
           </el-table-column>
 
           <el-table-column label="操作">
-            <template slot-scope="scope">
+            <template slot-scope="scope" v-if="scope.row.roleInfo.level>userInfo.roleInfo.level">
+
               <el-button
                 size="mini"
                 @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
@@ -268,23 +276,6 @@
             name:'',
             titlelevel:'中级'
           },
-          jls:[],
-          tls: [{
-            value: '员级',
-            label: '员级'
-          }, {
-            value: '初级',
-            label: '初级'
-          }, {
-            value: '中级',
-            label: '中级'
-          }, {
-            value: '副高级',
-            label: '副高级'
-          }, {
-            value: '正高级',
-            label: '正高级'
-          }],
           value: '',
           activeName: 'first',
           tableData:[],
@@ -336,7 +327,8 @@
           roleForm:{
             roleId:'',
             userId:''
-          }
+          },
+          userInfo:this.$store.state.userInfo
         }
       },
       mounted() {
@@ -348,6 +340,33 @@
           this.$message({
             type: 'success',
             message: '导出成功!'
+          });
+        },
+        delbdrole(id){
+          this.$confirm('此操作将永久解除该用户的角色, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning',
+          }).then(() => {
+            this.$axios.post(this.url+"todelbdrole",{id:id}).then((res)=>{
+              if(res.data.code){
+                this.$message({
+                  type: 'success',
+                  message: '解除成功!'
+                });
+                this.getlist(this.mypage);
+              }
+            }).catch(()=>{
+              this.$message({
+                type: 'warning',
+                message: '你没有权限操作！'
+              });
+            })
+          }).catch(() => {
+            this.$message({
+              type: 'info',
+              message: '已取消删除'
+            });
           });
         },
         handleRemove(file, fileList) {
@@ -450,7 +469,7 @@
             }
         },
         dakai(row){
-          this.$axios.post(this.url+"tofindallrole").then((res)=>{
+          this.$axios.post(this.url+"tofindallrole",{leval:this.userInfo.roleInfo.level}).then((res)=>{
             this.roleList = res.data.result;
           })
           if(row.roleInfo!=null){
