@@ -45,12 +45,11 @@
       </el-form>
     </div>
 
-
-
   </div>
 </template>
 
 <script>
+  import {setCookie,getCookie} from "../../util/util";
   export default {
     name: "login",
     data(){
@@ -136,7 +135,7 @@
               this.$store.state.token=response.data.token
               this.$store.state.userInfo=response.data.result
               window.localStorage.setItem('store', JSON.stringify(this.$store.state))
-
+              setCookie(respo.result.loginName,respo.result.userName,7);
               //关闭加载窗
               this.$data.percent=100
               //隐藏进度条
@@ -279,6 +278,9 @@
     mounted(){
       var _this = this;
       var code = "";
+      if(getCookie(this.$store.state.userInfo.loginName)!=null){
+        this.$router.push({path:'/view/shouye/shouye'});
+      }
       //从后台获取滑动验证码
       //参数 url 访问参数
       this.$axios.post(this.domain.ssoserverpath+'getCode').then((response)=>{

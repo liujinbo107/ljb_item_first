@@ -71,6 +71,7 @@
 <script>
   import mymenu from './datamenu.vue'
   import mymain from './datamain.vue'
+  import {delCookie} from "../../util/util";
 
   const userinfo={};
 
@@ -157,9 +158,11 @@
 
           this.$confirm('确认登出？').then(_ => {
             this.$axios.post(this.domain.ssoserverpath+"loginout",{id:this.userid}).then((response)=>{
+              delCookie(this.$store.state.userInfo.loginName)
               this.$store.state.token=""
               this.$store.state.userInfo={}
               window.localStorage.clear();
+
               let sts=response.data.code;
               if(sts=="200"){
                 this.$message({
