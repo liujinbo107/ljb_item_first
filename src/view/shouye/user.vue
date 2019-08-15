@@ -59,7 +59,7 @@
                 <p v-if="scope.row.roleInfo!=null">角色:{{scope.row.roleInfo.roleName}}</p>
                 <el-image
                   style="width: 60px; height: 60px"
-                  :src="'http://localhost:8888/'+scope.row.touxiang"
+                  :src="vhosturl+scope.row.touxiang+smallurl"
                 ></el-image>
                 <div slot="reference" class="name-wrapper">
                   <el-tag size="medium">{{ scope.row.userName }}</el-tag>
@@ -95,7 +95,8 @@
             <template slot-scope="scope">
               <el-image
                 style="width: 60px; height: 60px"
-                :src="'http://localhost:8888/'+scope.row.touxiang"
+                :src="vhosturl+scope.row.touxiang+smallurl"
+                :preview-src-list="[vhosturl+scope.row.touxiang+nomalurl]"
               ></el-image>
             </template>
           </el-table-column>
@@ -221,7 +222,7 @@
           class="upload-demo"
           :headers="this.header"
           ref="upload"
-          action="http://localhost:10000/api/manger/toaddusers"
+          action="https://localhost:10000/api/manger/toaddusers"
           :on-preview="handlePreview"
           :auto-upload="false">
           <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
@@ -229,6 +230,9 @@
           <div slot="tip" class="el-upload__tip">只能上传excel文件</div>
         </el-upload>
 
+      </el-tab-pane>
+      <el-tab-pane label="用户活跃量" name="third">
+        <div id="huo" style="width: 650px;height: 400px;"></div>
       </el-tab-pane>
     </el-tabs>
 
@@ -281,6 +285,9 @@
           tableData:[],
           role:{},
           entityMod:{},
+          vhosturl:"http://49.232.19.36:8888/group1/",
+          smallurl:"_100x100.jpg",
+          nomalurl:".jpg",
           mypage:{
             userName:"",
             sex:"",
@@ -301,6 +308,7 @@
             repassword: '',
             tel:''
           },
+          srcList:"",
           rules: {
             userName: [
               { required: true, message: '请填写用户名', trigger: 'change' }
@@ -328,13 +336,96 @@
             roleId:'',
             userId:''
           },
-          userInfo:this.$store.state.userInfo
+          userInfo:this.$store.state.userInfo,
+          charts: '',
+          /*  opinion: ["1", "3", "3", "4", "5"],*/
+          opinionData:[],
+          arr:[],
+        }
+      },
+      watch: {
+        opinionData(a,b){
+          this.drawLine('huo')
         }
       },
       mounted() {
         this.getlist(this.mypage);
+        this.$nextTick(function() {
+          for(var i = 0; i > -7; i--) {
+            this.arr.push(this.getBeforeDate(i));
+          }
+            this.drawLine('huo')
+        })
+        this.getUserAccess();
       },
       methods:{
+        getUserAccess(){
+          this.$axios.post(this.url+"getUserAccess").then((res)=>{
+            alert(res.data.result)
+            this.opinionData = res.data.result;
+          })
+        },
+        drawLine(id) {
+          this.charts = this.echarts.init(document.getElementById(id))
+          this.charts.setOption({
+            tooltip: {
+              trigger: 'axis'
+            },
+            legend: {
+              data: ['近七日用户活跃度']
+            },
+            grid: {
+              left: '3%',
+              right: '4%',
+              bottom: '3%',
+              containLabel: true
+            },
+
+            toolbox: {
+              feature: {
+                saveAsImage: {}
+              }
+            },
+            xAxis: {
+              type: 'category',
+              name: '日期',
+              boundaryGap: false,
+              data: this.arr.reverse(),
+            },
+            yAxis: {
+              type: 'value',
+              name: '用户量/次',
+            },
+            series: [{
+              name: '近七日用户活跃度',
+              type: 'line',
+              stack: '总量',
+              data: this.opinionData
+            }]
+          })
+        },
+        getBeforeDate(n) {
+          var n = n;
+          console.log(n);//
+          var d = new Date();
+          var year = d.getFullYear();
+          var mon = d.getMonth() + 1;
+          var day = d.getDate();
+          if(day <= n) {
+            if(mon > 1) {
+              mon = mon - 1;
+            } else {
+              year = year - 1;
+              mon = 12;
+            }
+          }
+          d.setDate(d.getDate() + n); //很重要，+n取得是前一天的时间
+          year = d.getFullYear();
+          mon = d.getMonth() + 1;
+          day = d.getDate();
+          var s = (mon < 10 ? ('0' + mon) : mon) + "-" + (day < 10 ? ('0' + day) : day);
+          return s;
+        },
         submitUpload() {
           this.$refs.upload.submit();
           this.$message({
@@ -538,7 +629,7 @@
           this.dialogVisible=true;
           this.entityMod = row;
           this.entityMod.password = "";
-          this.imageUrl = 'http://localhost:8888/'+row.touxiang;
+          this.imageUrl = 'http://49.232.19.36:8888/group1/'+row.touxiang+'.jpg';
         },
         guanbi(){
           this.dialogVisible=false;
@@ -598,5 +689,10 @@
     width: 178px;
     height: 178px;
     display: block;
+  }
+  #huo {
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 </style>

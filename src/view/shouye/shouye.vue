@@ -86,7 +86,7 @@
         dialog1Visible: false,
         userid:this.$store.state.userInfo.id,
         username:this.$store.state.userInfo.userName,
-        touxiang:'http://localhost:8888/'+this.$store.state.userInfo.touxiang,
+        touxiang:'http://49.232.19.36:8888/group1/'+this.$store.state.userInfo.touxiang+'_100x100.jpg',
         currInfo:{
           userName:'',
           loginName:'',
@@ -193,12 +193,14 @@
         }else if(command=="c"){
           this.$router.push({path:"/system"})
         }
-      }
+      },
+
     },
     mounted(){
       //初始化webSocket
       //this.webSocketInit()
       //console.log(window.localStorage.getItem("store"));
+      //this.getUserAccess();
     },
     destroyed(){
       //关闭socket

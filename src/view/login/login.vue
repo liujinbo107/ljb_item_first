@@ -8,41 +8,72 @@
       <div class="ms-title">
         欢迎使用
       </div>
-      <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="0px" class="ms-content">
-        <el-form-item prop="username">
-          <el-input v-model="ruleForm.username" placeholder="请输入用户名">
-            <el-button slot="prepend" icon="iconfont icon-guanliyuanrenzheng"></el-button>
-          </el-input>
-        </el-form-item>
-        <el-form-item  prop="password">
-          <el-input type="password" placeholder="请输入认证密码" v-model="ruleForm.password" @keyup.enter.native="submitForm('ruleForm')">
-            <el-button slot="prepend" icon="iconfont icon-yuechi"></el-button>
-          </el-input>
-        </el-form-item>
+      <el-tabs v-model="activeName" @tab-click="handleClick">
+        <el-tab-pane label="用户密码登陆" name="first">
+          <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="0px" class="ms-content">
+            <el-form-item prop="username">
+              <el-input v-model="ruleForm.username" placeholder="请输入用户名">
+                <el-button slot="prepend" icon="iconfont icon-guanliyuanrenzheng"></el-button>
+              </el-input>
+            </el-form-item>
+            <el-form-item  prop="password">
+              <el-input type="password" placeholder="请输入认证密码" v-model="ruleForm.password" @keyup.enter.native="submitForm('ruleForm')">
+                <el-button slot="prepend" icon="iconfont icon-yuechi"></el-button>
+              </el-input>
+            </el-form-item>
 
-        <el-form-item prop="code">
-          <div class="form-inline-input">
-            <div class="code-box" id="code-box">
-              <input ref="coderef" type="text" name="code" class="code-input" />
-              <p></p>
-              <span style="color:#909399">
+            <el-form-item prop="code">
+              <div class="form-inline-input">
+                <div class="code-box" id="code-box">
+                  <input ref="coderef" type="text" name="code" class="code-input" />
+                  <p></p>
+                  <span style="color:#909399">
                      拖动验证
                   </span>
+                </div>
+              </div>
+            </el-form-item>
+
+            <div class="login-btn">
+              <el-button type="primary" @click="submitForm('ruleForm')">登录</el-button>
             </div>
-          </div>
-        </el-form-item>
+            <!-- 登录进度 -->
+            <el-progress ref="jindu" :style="jindustyle"  :text-inside="true"
+                         :stroke-width="18"
+                         :percentage="percent"
+                         status="success"></el-progress>
+          </el-form>
+        </el-tab-pane>
+        <el-tab-pane label="手机登陆" name="second">
+          <el-form :model="loginTelForm" :rules="rules2" ref="loginTelForm" label-width="0px" class="ms-content">
 
+            <el-form-item prop="tel" >
+              <el-input v-model="loginTelForm.tel"  placeholder="请输入手机号" autocomplete="off">
+                <el-button slot="prepend" icon="el-icon-phone"></el-button>
+              </el-input>
+            </el-form-item>
 
-        <div class="login-btn">
-          <el-button type="primary" @click="submitForm('ruleForm')">登录</el-button>
-        </div>
-        <!-- 登录进度 -->
-        <el-progress ref="jindu" :style="jindustyle"  :text-inside="true"
-                     :stroke-width="18"
-                     :percentage="percent"
-                     status="success"></el-progress>
+            <el-form-item  >
+              <el-input placeholder="请输入验证码" v-model="loginTelForm.telCode">
+                <el-button slot="prepend" v-show="buttonState" @click="getCode('loginTelForm')">获取验证码</el-button>
+                <el-button slot="prepend" v-show="!buttonState" >{{counts}}</el-button>
+              </el-input>
+            </el-form-item>
 
-      </el-form>
+            <div class="login-btn">
+              <el-button type="primary" @click="submitLoginTelForm('loginTelForm')">登录</el-button>
+            </div>
+            <!-- 登录进度 -->
+            <el-progress ref="jindu" :style="jindustyle"  :text-inside="true"
+                         :stroke-width="18"
+                         :percentage="percent"
+                         status="success"></el-progress>
+
+          </el-form>
+
+        </el-tab-pane>
+      </el-tabs>
+
     </div>
 
   </div>
@@ -53,6 +84,25 @@
   export default {
     name: "login",
     data(){
+      var validPhone=(rule, value,callback)=>{
+        const phoneReg = /^1[3|4|5|7|8][0-9]{9}$/
+        if (!value) {
+          return callback(new Error('电话号码不能为空'))
+        }
+        setTimeout(() => {
+          // Number.isInteger是es6验证数字是否为整数的方法,但是我实际用的时候输入的数字总是识别成字符串
+          // 所以我就在前面加了一个+实现隐式转换
+          if (!Number.isInteger(+value)) {
+            callback(new Error('请输入数字值'))
+          } else {
+            if (phoneReg.test(value)) {
+              callback()
+            } else {
+              callback(new Error('电话号码格式不正确'))
+            }
+          }
+        }, 100)
+      }
       return{
         divimg:{//背景图片的使用
           backgroundImage:"url(" + require('../../assets/yun.jpg') + ")",
@@ -62,6 +112,20 @@
           overflow:"hidden",
           backgroundSize:"cover"
         },
+        activeName: 'first',
+        buttonState:true,
+        loginTelForm:{
+          tel:'',
+          telCode:''
+        },
+        rules2:{
+          tel: [
+            { validator:validPhone, trigger: 'change' }
+          ]
+        },
+        count:'',
+        counts:'',
+        timer:null,
         percent:0,
         jindustyle:{
           display:'none'
@@ -81,8 +145,88 @@
       }
     },
     methods:{
-      submitForm(ruleid){
+      submitLoginTelForm(loginTelForm){
+        this.$refs[loginTelForm].validate((valid) => {
+          if (valid) {
+            if(this.loginTelForm.telCode!=''){
+              this.submitByTel();
+            }else{
+              this.$message({
+                type: 'info',
+                message: '请输入验证码!'
+              });
+            }
+          } else {
+            return false;
+          }
+        });
+      },
+      submitByTel(){
+         this.$axios.post(this.domain.ssoserverpath+"phoneLogin",this.loginTelForm).then((response)=>{
+           if(response.data.code=='500'){
+             this.$message({
+               type: 'error',
+               message: '验证码已过期!'
+             });
+           }else if(response.data.code=='505'){
+             this.$message({
+               type: 'error',
+               message: '验证码错误!'
+             });
+           }else if(response.data.code=='200'){
+             this.$store.state.token=response.data.token
+             this.$store.state.userInfo=response.data.result
+             window.localStorage.setItem('store', JSON.stringify(this.$store.state))
+             setCookie(response.data.result.loginName,response.data.result.userName,7);
+             this.$router.push({path:'/view/shouye/shouye',query:{username:response.data.result.userName,userid:response.data.result.id}});
+           }else if(response.data.code=='510'){
+             alert("请先注册用户")
+           }
+         })
+      },
+      getCode(loginTelForm) {
+        this.$refs[loginTelForm].validate((valid) => {
+          if (valid) {
+            this.getImgCode();
+          } else {
+            return false;
+          }
+        });
+      },
+      getImgCode(){
+        // this.$axios.post(this.domain.ssoserverpath+"getPhoneCode",this.loginTelForm).then((res)=>{
+        //   if(res.data.code=='200'){
+        //     this.$message({
+        //       type: 'success',
+        //       message: '验证码发送成功!'
+        //     });
+        //   }else{
+        //     this.$message({
+        //       type: 'error',
+        //       message: '验证码发送失败!'
+        //     });
+        //   }
+        // })
+        const TIME_COUNT = 60;
+        if(!this.timer){
+          this.count = TIME_COUNT;
+          this.buttonState = false;
+          this.timer = setInterval(() => {
+            if (this.count > 0 && this.count <= TIME_COUNT) {
+              this.count--;
+              this.counts = this.count+'s后重试'
+            } else {
+              this.buttonState = true;
+              clearInterval(this.timer);
+              this.timer = null;
+            }
+          }, 1000)
+        }
+      },
+      handleClick(tab, event){
 
+      },
+      submitForm(ruleid){
         let code=this.$refs.coderef.value;
         if(code==null||code==""){
           const h = this.$createElement;

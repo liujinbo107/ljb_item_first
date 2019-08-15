@@ -5,6 +5,9 @@ import App from './App'
 import router from './router'
 Vue.config.productionTip = false
 
+//引入echarts
+import echarts from 'echarts'
+Vue.prototype.echarts = echarts;
 //引入定义的全局变量
 import gloable from './store/gloable'
 //存入全局备用
@@ -57,6 +60,13 @@ router.beforeEach((to, from, next)=>{
 axios.interceptors.request.use((config)=>{
 
   if(config.url.includes("getCode")){//如果是获取验证码的路径sss
+    //没有Cookie的话添加Cookie
+    let aucokie=Cookies.get("authcode")
+    if(aucokie==null){
+      Cookies.set("authcode","",{path:"/",domain:"localhost",age:-1})
+    }
+  }
+  if(config.url.includes("getPhoneCode")){//如果是获取验证码的路径sss
     //没有Cookie的话添加Cookie
     let aucokie=Cookies.get("authcode")
     if(aucokie==null){
