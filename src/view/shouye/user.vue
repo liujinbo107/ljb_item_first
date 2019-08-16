@@ -351,7 +351,7 @@
       mounted() {
         this.getlist(this.mypage);
         this.$nextTick(function() {
-          for(var i = 0; i > -7; i--) {
+          for(var i = -6; i < 1 ; i++) {
             this.arr.push(this.getBeforeDate(i));
           }
             this.drawLine('huo')
@@ -361,7 +361,7 @@
       methods:{
         getUserAccess(){
           this.$axios.post(this.url+"getUserAccess").then((res)=>{
-            alert(res.data.result)
+            //alert(res.data.result)
             this.opinionData = res.data.result;
           })
         },
@@ -390,7 +390,7 @@
               type: 'category',
               name: '日期',
               boundaryGap: false,
-              data: this.arr.reverse(),
+              data: this.arr,
             },
             yAxis: {
               type: 'value',

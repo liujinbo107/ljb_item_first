@@ -73,6 +73,13 @@ axios.interceptors.request.use((config)=>{
       Cookies.set("authcode","",{path:"/",domain:"localhost",age:-1})
     }
   }
+  if(config.url.includes("tosendEmail")){//如果是获取验证码的路径sss
+    //没有Cookie的话添加Cookie
+    let aucokie=Cookies.get("authcode")
+    if(aucokie==null){
+      Cookies.set("authcode","",{path:"/",domain:"localhost",age:-1})
+    }
+  }
     config.headers["token"]=store.state.token
 
   return config;

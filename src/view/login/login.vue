@@ -33,6 +33,9 @@
                 </div>
               </div>
             </el-form-item>
+            <el-form-item>
+                <a href="/pass">忘记密码？找回密码</a>
+            </el-form-item>
 
             <div class="login-btn">
               <el-button type="primary" @click="submitForm('ruleForm')">登录</el-button>
@@ -194,19 +197,19 @@
         });
       },
       getImgCode(){
-        // this.$axios.post(this.domain.ssoserverpath+"getPhoneCode",this.loginTelForm).then((res)=>{
-        //   if(res.data.code=='200'){
-        //     this.$message({
-        //       type: 'success',
-        //       message: '验证码发送成功!'
-        //     });
-        //   }else{
-        //     this.$message({
-        //       type: 'error',
-        //       message: '验证码发送失败!'
-        //     });
-        //   }
-        // })
+        this.$axios.post(this.domain.ssoserverpath+"getPhoneCode",this.loginTelForm).then((res)=>{
+          if(res.data.code=='200'){
+            this.$message({
+              type: 'success',
+              message: '验证码发送成功!'
+            });
+          }else{
+            this.$message({
+              type: 'error',
+              message: '验证码发送失败!'
+            });
+          }
+        })
         const TIME_COUNT = 60;
         if(!this.timer){
           this.count = TIME_COUNT;

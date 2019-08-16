@@ -10,6 +10,7 @@ import system from '@/view/shouye/system'
 import user from '@/view/shouye/user'
 import role from '@/view/shouye/role'
 import menus from '@/view/shouye/menus'
+import pass from '@/view/login/password'
 
 Vue.use(Vuex)
 Vue.use(Router)
@@ -49,6 +50,11 @@ export default new Router({
       path:"/datamenu",
       component:datamenu,
       meta:{require:true}
+    },
+    {
+      path:"/pass",
+      component:pass,
+      meta:{require:false}
     }
   ]
 })
