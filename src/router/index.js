@@ -11,6 +11,7 @@ import user from '@/view/shouye/user'
 import role from '@/view/shouye/role'
 import menus from '@/view/shouye/menus'
 import pass from '@/view/login/password'
+import repassword from '@/view/login/repassword'
 
 Vue.use(Vuex)
 Vue.use(Router)
@@ -54,6 +55,11 @@ export default new Router({
     {
       path:"/pass",
       component:pass,
+      meta:{require:false}
+    },
+    {
+      path:"/repass",
+      component:repassword,
       meta:{require:false}
     }
   ]
