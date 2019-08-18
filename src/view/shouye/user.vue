@@ -169,6 +169,10 @@
               </el-radio-group>
             </el-form-item>
 
+            <el-form-item label="邮箱" prop="email">
+              <el-input v-model="entityMod.email"></el-input>
+            </el-form-item>
+
             <el-form-item label="密码" prop="password">
               <el-input type="password" v-model="entityMod.password"></el-input>
             </el-form-item>
@@ -216,8 +220,7 @@
       </el-tab-pane>
 
       <el-tab-pane label="批量添加" name="second">
-
-
+        <div style="float: left;"><el-button style="margin-left: 10px;" size="small" type="warning" @click="downloadTemplate">下载模板</el-button></div>
         <el-upload
           class="upload-demo"
           :headers="this.header"
@@ -306,7 +309,8 @@
             sex: '',
             password: '',
             repassword: '',
-            tel:''
+            tel:'',
+            email:''
           },
           srcList:"",
           rules: {
@@ -327,6 +331,10 @@
             ],
             tel:[
               { validator:validPhone, trigger: 'change' }
+            ],
+            email:[
+              { required: false, message: '请输入邮箱地址', trigger: 'blur' },
+              { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'] }
             ]
           },
           repassword:'',
@@ -364,6 +372,23 @@
             //alert(res.data.result)
             this.opinionData = res.data.result;
           })
+        },
+        downloadTemplate(){
+          //下载模板
+          var that = this;
+          let listData = [];
+          require.ensure([], () => {
+            const { export_json_to_excel } = require('@/excel/export2Excel'); //这里必须使用绝对路径，使用@/+存放export2Excel的路径
+            const tHeader = ['id','用户名','登录名','父id','密码','性别','电话','头像','邮箱']; // 导出的表头名信息
+            const filterVal = "" // 导出的表头字段名，需要导出表格字段名
+            const list = listData;
+            const data = that.formatJson(filterVal, list);
+            export_json_to_excel(tHeader, data, '批量添加模板excel');// 导出的表格名称，根据需要自己命名
+          })
+        },
+        //格式转换，直接复制即可
+        formatJson(filterVal, jsonData) {
+          return jsonData.map(v => filterVal.map(j => v[j]))
         },
         drawLine(id) {
           this.charts = this.echarts.init(document.getElementById(id))
